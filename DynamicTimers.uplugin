@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Dynamic Timers",
+	"Description": "A Global Timers Component",
+	"Category": "Gameplay",
+	"CreatedBy": "Fuly Games",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EngineVersion": "5.5.0",
+	"CanContainContent": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "DynamicTimers",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
