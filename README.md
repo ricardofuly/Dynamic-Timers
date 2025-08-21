@@ -1,6 +1,6 @@
 # Dynamic Timers Component for Unreal Engine
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://imgshields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A robust, replicated Actor Component for Unreal Engine that manages network-synced timers using Gameplay Tags. It's a plug-and-play solution for creating timers with a full lifecycle (start, pause, resume), batch operations, and granular Join-In-Progress persistence rules.
 
@@ -12,9 +12,10 @@ A robust, replicated Actor Component for Unreal Engine that manages network-sync
 - [Installation & Setup](#-installation--setup)
 - [How to Use](#-how-to-use)
   - [1. Accessing the Component](#1-accessing-the-component)
-  - [2. Managing Timers on the Server (Blueprints)](#2-managing-timers-on-the-server-blueprints)
-  - [3. Displaying Timers on the Client UI (Blueprints)](#3-displaying-timers-on-the-client-ui-blueprints)
-  - [4. Handling Join-In-Progress](#4-handling-join-in-progress)
+  - [2. Managing Timers on the Server](#2-managing-timers-on-the-server-blueprints)
+  - [3. Using the Example Widget `W_Timer` (Simple)](#3-using-the-example-widget-w_timer-simple)
+  - [4. Displaying Multiple Timers (Advanced)](#4-displaying-multiple-timers-advanced)
+  - [5. Handling Join-In-Progress](#5-handling-join-in-progress)
 - [API Reference (Blueprints)](#-api-reference-blueprints)
   - [Core Functions](#core-functions)
   - [Events (Delegates)](#events-delegates)
@@ -89,14 +90,12 @@ The plugin is now set up and ready to use!
 ## 🔧 How to Use
 
 ### 1. Accessing the Component
-
 To call functions or bind to events, you first need a reference to the `DynamicTimersComponent` from your `GameState`.
 
 ### 2. Managing Timers on the Server (Blueprints)
-
 All actions that modify timers (register, start, etc.) **must be executed on the server** (e.g., in the `GameMode` or from a `Run on Server` event).
 
-**Example: Registering and starting timers in the `GameMode`**
+**Example: Registering timers in the `GameMode`**
 
 ```blueprint
 # In your GameMode's Event BeginPlay
@@ -104,42 +103,50 @@ All actions that modify timers (register, start, etc.) **must be executed on the
 # 1. Get the GameState and the DynamicTimersComponent
 Get Game State -> Get Component by Class (Class: DynamicTimersComponent)
 
-# 2. Prepare an array of timers to register in batch
+# 2. Prepare an array of timers to register
 Make Array
   -> Make BulkTimerRegistrationData (Tag: Match.TimeRemaining, Duration: 900.0, Persist: True)
   -> Make BulkTimerRegistrationData (Tag: Round.PreStartTime, Duration: 15.0, Persist: False)
 
 # 3. Call the register function on the component
 -> Register Global Timers
-
-# 4. Later, in another event (e.g., "All Players Ready"), start a timer
--> Start Global Timer (Tag: Round.PreStartTime)
 ```
 
-### 3. Displaying Timers on the Client UI (Blueprints)
+### 3. Using the Example Widget `W_Timer` (Simple)
 
-The UI should be purely reactive. It listens for events from the `DynamicTimersComponent` to create, destroy, and update timer widgets.
+The plugin includes a ready-to-use example widget, `W_Timer`, designed to display a **single, specific timer**. This is the fastest way to get a timer on screen, perfect for a main match clock, a bomb countdown, or any prominent timer.
+
+You can find it in the plugin's content folder: `/DynamicTimers/Content/Widgets/`
+
+**How to use it:**
+
+1.  Open your main HUD widget where you want the timer to appear.
+2.  In the `Palette` panel, find `W_Timer` under the `[User Created]` category and drag it onto your design canvas.
+3.  Select the `W_Timer` you just added.
+4.  In the `Details` panel on the right, find the category named **`Dynamic Timers -> Settings`**.
+5.  Set the **`Filter Tag`** property to the exact `GameplayTag` of the timer you want this widget to display (e.g., `Match.TimeRemaining`).
+
+That's it! This widget will now automatically listen for events related to that specific tag and handle its own visibility and time updates.
+
+### 4. Displaying Multiple Timers (Advanced)
+
+This approach is for dynamically showing *all* active timers, creating and destroying widgets as needed. It's more complex but offers maximum flexibility.
 
 **Example setup in your HUD Widget (`WBP_HUD`):**
 
-1.  **On `Event Construct`:**
-    -   Get the `GameState` and then the `DynamicTimersComponent`.
-    -   Use `Bind Event` to subscribe to delegates like `OnTimerRegistered`, `OnTimerFinished`, etc.
-
-    
-
+1.  **On `Event Construct`:** Get the `DynamicTimersComponent` and use `Bind Event` to subscribe to delegates like `OnTimerRegistered`, `OnTimerFinished`, etc.
 2.  **Reacting to Events:**
-    -   **`OnTimerRegistered`:** Create a timer widget (`WBP_TimerDisplay`), add it to the screen, and store its reference in a `Map` using the `GameplayTag` as the key.
+    -   **`OnTimerRegistered`:** Create a timer display widget, add it to a container (like a `Vertical Box`), and store its reference in a `Map`.
     -   **`OnTimerFinished`:** Use the `GameplayTag` to find the widget in your `Map`, then remove it from the screen and the `Map`.
 
-3.  **Updating Time (`WBP_TimerDisplay`):**
-    -   In your timer widget's `Event Tick`, get the `DynamicTimersComponent` and call `GetTimerRemainingTime`, then update the text on screen. This function handles all states (registered, active, paused) automatically.
+### 5. Handling Join-In-Progress
 
-### 4. Handling Join-In-Progress
+The system already synchronizes time correctly for new players.
 
-The system already synchronizes time correctly for new players. You just need to filter which timers are displayed by using the JIP flag in your HUD's `Event Construct`.
+-   If you are using the example widget **`W_Timer`**, it handles its own JIP logic automatically based on its Filter Tag. No extra work is needed.
+-   If you are using the **advanced method** (Displaying Multiple Timers), you must filter which timers are displayed by checking the JIP flag in your HUD's `Event Construct`.
 
-**Example JIP filter in `WBP_HUD`:**
+**Example JIP filter for the advanced method:**
 
 ```blueprint
 # In Event Construct, after getting the DynamicTimersComponent
