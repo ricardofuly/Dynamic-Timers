@@ -1,6 +1,6 @@
 # Dynamic Timers Component for Unreal Engine
 
-
+[![License: MIT](https://imgshields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A robust, replicated Actor Component for Unreal Engine that manages network-synced timers using Gameplay Tags. It's a plug-and-play solution for creating timers with a full lifecycle (start, pause, resume), batch operations, and granular Join-In-Progress persistence rules.
 
